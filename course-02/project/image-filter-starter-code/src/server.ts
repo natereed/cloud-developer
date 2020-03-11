@@ -2,7 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import {filterImageFromURL, deleteLocalFiles} from './util/util';
 import * as request from 'request-promise-native';
-var errors = require('request-promise-native/errors');
+import {ReadStream} from "fs";
 
 (async () => {
 
@@ -33,41 +33,37 @@ var errors = require('request-promise-native/errors');
 
   /**************************************************************************** */
   app.get("/filteredimage", async ( req, res) => {
-    // look for image_url
-    console.log(req.query);
-    const imageUrl = req.query.image_url;
-
     const fs = require('fs');
     const path = require('path');
 
+    const imageUrl : string = req.query.image_url;
     if ( !imageUrl ) {
       res.status(400).send({msg: "image_url is required"});
     }
 
-    var validUrl = require('valid-url');
+    const validUrl = require('valid-url');
     if (!validUrl.isUri(imageUrl)) {
       res.status(400).send({msg: "image_url not a valid url"});
       return;
     }
 
-    let mimeTypes = {
+    let mimeTypes:{ [id: string] : string }= {
       gif: 'image/gif',
       jpg: 'image/jpeg',
       jpeg: 'image/jpeg',
       png: 'image/png',
       svg: 'image/svg+xml',
     };
-    let type = mimeTypes[path.extname(imageUrl).split('.')[1] as keyof typeof mimeTypes];
 
-    console.log("Type: " + type);
+    let type : string = mimeTypes[path.extname(imageUrl).split('.')[1]];
     if (!type) {
       res.status(422).send({message: "The requested media type is unsupported"});
       return;
     }
 
     // Check for resource to see if it exists
-    var err = null;
-    var statusCode = null;
+    let err : Error = null;
+    let statusCode : number = null;
     await request.head({uri: imageUrl, simple: false, resolveWithFullResponse: true})
         .then((response) => {
           console.log("HEAD OK")
@@ -90,10 +86,10 @@ var errors = require('request-promise-native/errors');
 
     // Now, actually retrieve the contents and apply filter
     // TODO: Somehow combine the check for the image and the jimp.read operation to avoid making two requests
-    const filePath = await filterImageFromURL(imageUrl);
+    const filePath : string = await filterImageFromURL(imageUrl);
     console.log("Path to image: " + filePath);
 
-    var s = fs.createReadStream(filePath);
+    let s : ReadStream = fs.createReadStream(filePath);
     s.on('open', function () {
       res.set('Content-Type', type);
       s.pipe(res);
