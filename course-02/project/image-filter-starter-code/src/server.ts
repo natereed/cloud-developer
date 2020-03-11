@@ -47,6 +47,9 @@ import {ReadStream} from "fs";
       return;
     }
 
+    // This snippet came from a question on StackOverflow, but I can't find it now for attribution. It is slightly
+    // different from the original answer, which had to do with mime types in general and not necessarily images. If
+    // I could find the link I would post it here:
     let mimeTypes:{ [id: string] : string }= {
       gif: 'image/gif',
       jpg: 'image/jpeg',
