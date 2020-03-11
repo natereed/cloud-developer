@@ -95,6 +95,7 @@ import {ReadStream} from "fs";
     let s : ReadStream = fs.createReadStream(filePath);
     s.on('open', function () {
       res.set('Content-Type', type);
+      res.status(200);
       s.pipe(res);
     }).on('close', function() {
       console.log("Deleting " + filePath);
