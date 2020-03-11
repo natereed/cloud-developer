@@ -22,28 +22,6 @@ export async function filterImageFromURL(inputURL: string): Promise<string>{
     });
 }
 
-export async function filterImageFromURL2(inputURL: string): Promise<string>{
-    return new Promise(async resolve => {
-        const image = await Jimp.read(inputURL)
-            .then(async image => {
-              const outpath = '/tmp/filtered.'+Math.floor(Math.random() * 2000)+'.jpg';
-              await image
-                  .resize(256, 256) // resize
-                  .quality(60) // set JPEG quality
-                  .greyscale() // set greyscale
-                  .write(__dirname+outpath, (img)=>{
-                      resolve(__dirname+outpath);
-                    });
-            })
-            .catch(err => {
-                console.log("Error: " + err);
-                return null;
-            });
-        console.log("Returning image" + image);
-        return image;
-    });
-}
-
 // deleteLocalFiles
 // helper function to delete files on the local disk
 // useful to cleanup after tasks
