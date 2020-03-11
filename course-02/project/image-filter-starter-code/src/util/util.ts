@@ -24,7 +24,7 @@ export async function filterImageFromURL(inputURL: string): Promise<string>{
 
 export async function filterImageFromURL2(inputURL: string): Promise<string>{
     return new Promise(async resolve => {
-        const image = Jimp.read(inputURL)
+        const image = await Jimp.read(inputURL)
             .then(async image => {
               const outpath = '/tmp/filtered.'+Math.floor(Math.random() * 2000)+'.jpg';
               await image
@@ -36,8 +36,10 @@ export async function filterImageFromURL2(inputURL: string): Promise<string>{
                     });
             })
             .catch(err => {
+                console.log("Error: " + err);
                 return null;
             });
+        console.log("Returning image" + image);
         return image;
     });
 }

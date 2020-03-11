@@ -25,10 +25,14 @@
     "@types/node": "^11.13.17",
     "ts-node-dev": "^1.0.0-pre.40",
     "tslint": "^5.18.0",
-    "typescript": "^3.5.3"
+    "typescript": "^3.5.3",
+    "@types/request-promise-native": "^1.0.17"
   },
   "dependencies": {
     "express": "^4.17.1",
-    "jimp": "^0.6.4"
+    "jimp": "^0.6.4",
+    "request": "^2.88.2",
+    "request-promise-native": "^1.0.8",
+    "valid-url": "^1.0.9"
   }
 }

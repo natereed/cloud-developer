@@ -1,8 +1,12 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import {filterImageFromURL2, deleteLocalFiles} from './util/util';
+import {filterImageFromURL, deleteLocalFiles} from './util/util';
+import * as request from 'request-promise-native';
+var errors = require('request-promise-native/errors');
 
 (async () => {
+
+
 
   // Init the Express application
   const app = express();
@@ -40,20 +44,54 @@ import {filterImageFromURL2, deleteLocalFiles} from './util/util';
       res.status(400).send({msg: "image_url is required"});
     }
 
-    var mimeTypes = {
+    var validUrl = require('valid-url');
+    if (!validUrl.isUri(imageUrl)) {
+      res.status(400).send({msg: "image_url not a valid url"});
+      return;
+    }
+
+    let mimeTypes = {
       gif: 'image/gif',
       jpg: 'image/jpeg',
       jpeg: 'image/jpeg',
       png: 'image/png',
       svg: 'image/svg+xml',
     };
+    let type = mimeTypes[path.extname(imageUrl).split('.')[1] as keyof typeof mimeTypes];
 
-    const filePath = await filterImageFromURL2(imageUrl);
-    if (!filePath) {
-      res.status(404).send({message: "The image at that url does not exist"});
+    console.log("Type: " + type);
+    if (!type) {
+      res.status(422).send({message: "The requested media type is unsupported"});
+      return;
     }
 
-    var type = mimeTypes[path.extname(filePath) as keyof typeof mimeTypes] || 'text/plain';
+    // Check for resource to see if it exists
+    var err = null;
+    var statusCode = null;
+    await request.head({uri: imageUrl, simple: false, resolveWithFullResponse: true})
+        .then((response) => {
+          console.log("HEAD OK")
+          console.log(response.statusCode);
+          statusCode = response.statusCode;
+        })
+        .catch((error: Error) => {
+          console.log("Error retrieving resource: " + error); // failed for technical reasons (not an error status code)
+          err = error;
+        });
+
+    // Handle errors
+    if (err) {
+      res.status(400).send({msg: "Problem retrieving requested image"});
+      return;
+    } else if (statusCode != 200) {
+      res.status(statusCode).send({msg: "Problem retrieving requested image. Status code=" + statusCode});
+      return;
+    }
+
+    // Now, actually retrieve the contents and apply filter
+    // TODO: Somehow combine the check for the image and the jimp.read operation to avoid making two requests
+    const filePath = await filterImageFromURL(imageUrl);
+    console.log("Path to image: " + filePath);
 
     var s = fs.createReadStream(filePath);
     s.on('open', function () {
