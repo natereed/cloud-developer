@@ -93,8 +93,10 @@ import {ReadStream} from "fs";
     s.on('open', function () {
       res.set('Content-Type', type);
       s.pipe(res);
-    });
-    s.on('error', function () {
+    }).on('close', function() {
+      console.log("Deleting " + filePath);
+      deleteLocalFiles([filePath]);
+    }).on('error', function () {
       res.set('Content-Type', 'text/plain');
       res.status(404).end('Not found');
     });
